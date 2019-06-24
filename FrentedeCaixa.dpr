@@ -1,0 +1,30 @@
+program FrentedeCaixa;
+
+uses
+  Vcl.Forms,
+  FrenteCaixa in 'FrenteCaixa.pas' {Form1},
+  DataModule in 'DataModule.pas' {DtModule: TDataModule},
+  Vcl.Themes,
+  Vcl.Styles,
+  uCadastroProduto in 'uCadastroProduto.pas' {fCadastroProduto},
+  uProdutos in 'uProdutos.pas' {fProdutos},
+  uVendas in 'uVendas.pas' {fVendas},
+  uDesconto in 'uDesconto.pas' {fDesconto},
+  uRelatorioProdutos in 'uRelatorioProdutos.pas' {fRelatorioProdutos};
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  TStyleManager.TrySetStyle('Glossy');
+  Application.CreateForm(TfFrenteCaixa, fFrenteCaixa);
+  Application.CreateForm(TDtModule, DtModule);
+  Application.CreateForm(TfCadastroProduto, fCadastroProduto);
+  Application.CreateForm(TfProdutos, fProdutos);
+  Application.CreateForm(TfVendas, fVendas);
+  Application.CreateForm(TfDesconto, fDesconto);
+  Application.CreateForm(TfRelatorioProdutos, fRelatorioProdutos);
+  Application.Run;
+
+end.

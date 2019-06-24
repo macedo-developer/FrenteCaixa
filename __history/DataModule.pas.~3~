@@ -1,0 +1,27 @@
+unit DataModule;
+
+interface
+
+uses
+  System.SysUtils, System.Classes, FireDAC.Phys.PGDef, FireDAC.Stan.Intf,
+  FireDAC.Phys, FireDAC.Phys.PG;
+
+type
+  TDtModule = class(TDataModule)
+    Driver: TFDPhysPgDriverLink;
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  DtModule: TDtModule;
+
+implementation
+
+{%CLASSGROUP 'Vcl.Controls.TControl'}
+
+{$R *.dfm}
+
+end.

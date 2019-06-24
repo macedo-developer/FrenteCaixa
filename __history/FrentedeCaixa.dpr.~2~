@@ -1,0 +1,16 @@
+program FrentedeCaixa;
+
+uses
+  Vcl.Forms,
+  FrenteCaixa in 'FrenteCaixa.pas' {Form1},
+  DataModule in 'DataModule.pas' {DtModule: TDataModule};
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TForm1, Form1);
+  Application.CreateForm(TDtModule, DtModule);
+  Application.Run;
+end.

@@ -1,0 +1,20 @@
+program FrentedeCaixa;
+
+uses
+  Vcl.Forms,
+  FrenteCaixa in 'FrenteCaixa.pas' {Form1},
+  DataModule in 'DataModule.pas' {DtModule: TDataModule},
+  Vcl.Themes,
+  Vcl.Styles;
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  TStyleManager.TrySetStyle('Glossy');
+  Application.CreateForm(TfFrenteCaixa, fFrenteCaixa);
+  Application.CreateForm(TDtModule, DtModule);
+  Application.Run;
+
+end.

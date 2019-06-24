@@ -1,0 +1,31 @@
+unit uDesconto;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Buttons, Vcl.StdCtrls, Vcl.Mask,
+  Vcl.DBCtrls, Vcl.ExtCtrls;
+
+type
+  TfDesconto = class(TForm)
+    Panel3: TPanel;
+    Label3: TLabel;
+    Panel1: TPanel;
+    Panel2: TPanel;
+    SpeedButton1: TSpeedButton;
+    txDesconto: TEdit;
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  fDesconto: TfDesconto;
+
+implementation
+
+{$R *.dfm}
+
+end.

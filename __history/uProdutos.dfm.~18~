@@ -1,0 +1,127 @@
+object fProdutos: TfProdutos
+  Left = 0
+  Top = 0
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsSingle
+  Caption = 'Produtos'
+  ClientHeight = 379
+  ClientWidth = 484
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  OnShow = FormShow
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Panel1: TPanel
+    Left = 0
+    Top = 41
+    Width = 484
+    Height = 338
+    Align = alClient
+    ShowCaption = False
+    TabOrder = 0
+    ExplicitLeft = 152
+    ExplicitTop = 184
+    ExplicitWidth = 185
+    ExplicitHeight = 41
+    object DBGrid1: TDBGrid
+      Left = 1
+      Top = 1
+      Width = 482
+      Height = 336
+      Align = alClient
+      DataSource = dsProdutos
+      Options = [dgTitles, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgRowSelect, dgConfirmDelete, dgCancelOnExit, dgTitleClick, dgTitleHotTrack]
+      TabOrder = 0
+      TitleFont.Charset = DEFAULT_CHARSET
+      TitleFont.Color = clWindowText
+      TitleFont.Height = -11
+      TitleFont.Name = 'Tahoma'
+      TitleFont.Style = []
+      Columns = <
+        item
+          Expanded = False
+          FieldName = 'id'
+          Title.Caption = 'N'#186
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'produto'
+          Title.Caption = 'Produto'
+          Width = 294
+          Visible = True
+        end
+        item
+          Expanded = False
+          FieldName = 'preco'
+          Title.Caption = 'Pre'#231'o'
+          Width = 93
+          Visible = True
+        end>
+    end
+  end
+  object Panel2: TPanel
+    Left = 0
+    Top = 0
+    Width = 484
+    Height = 41
+    Align = alTop
+    ShowCaption = False
+    TabOrder = 1
+    ExplicitLeft = 8
+    ExplicitTop = 8
+    ExplicitWidth = 185
+    object btnNew: TSpeedButton
+      AlignWithMargins = True
+      Left = 331
+      Top = 3
+      Width = 73
+      Height = 35
+      Margins.Left = 2
+      Margins.Top = 2
+      Margins.Right = 2
+      Margins.Bottom = 2
+      Align = alRight
+      Caption = 'NOVO'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -8
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentFont = False
+      OnClick = btnNewClick
+      ExplicitLeft = 408
+    end
+    object btnEdit: TSpeedButton
+      AlignWithMargins = True
+      Left = 408
+      Top = 3
+      Width = 73
+      Height = 35
+      Margins.Left = 2
+      Margins.Top = 2
+      Margins.Right = 2
+      Margins.Bottom = 2
+      Align = alRight
+      Caption = 'EDITAR'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -8
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentFont = False
+      OnClick = btnEditClick
+      ExplicitLeft = 411
+      ExplicitTop = 1
+    end
+  end
+  object dsProdutos: TDataSource
+    Left = 96
+    Top = 169
+  end
+end

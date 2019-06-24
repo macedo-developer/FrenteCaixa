@@ -1,0 +1,22 @@
+object DtModule: TDtModule
+  OldCreateOrder = False
+  Height = 421
+  Width = 614
+  object Driver: TFDPhysPgDriverLink
+    VendorHome = 'C:\Projetos\FrenteCaixa\pgbin32'
+    VendorLib = 'libpq.dll'
+    Left = 88
+    Top = 208
+  end
+  object Connection: TFDConnection
+    Params.Strings = (
+      'DriverID=PG')
+    Left = 32
+    Top = 48
+  end
+  object FDQuery1: TFDQuery
+    Connection = Connection
+    Left = 288
+    Top = 192
+  end
+end

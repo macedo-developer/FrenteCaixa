@@ -1,0 +1,394 @@
+unit FrenteCaixa;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
+  System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Buttons, Vcl.ExtCtrls, Vcl.StdCtrls,
+  Vcl.ComCtrls, Vcl.Imaging.jpeg, Vcl.Imaging.pngimage, Vcl.Mask, Vcl.DBCtrls,
+  Data.DB, Vcl.Grids, Vcl.DBGrids, DataModule, Vcl.Dialogs, uCadastroProduto,
+  uProdutos, IniFiles;
+
+type
+  TfFrenteCaixa = class(TForm)
+    Panel2: TPanel;
+    Panel3: TPanel;
+    btnVendasView: TSpeedButton;
+    btnProduto: TSpeedButton;
+    btnVenda: TSpeedButton;
+    Panel4: TPanel;
+    Label1: TLabel;
+    Image1: TImage;
+    pnVendas: TPanel;
+    pnItens: TPanel;
+    pnAddItens: TPanel;
+    Panel6: TPanel;
+    Label2: TLabel;
+    pnFinalizar: TPanel;
+    Button1: TButton;
+    btnFinalizar: TButton;
+    Panel1: TPanel;
+    Label3: TLabel;
+    Label4: TLabel;
+    Label5: TLabel;
+    Label6: TLabel;
+    btnAdicionarItem: TSpeedButton;
+    DBGrid1: TDBGrid;
+    cbProdutos: TComboBox;
+    dsProdutosInfos: TDataSource;
+    txValor: TEdit;
+    txQuantidade: TEdit;
+    lbCliente: TLabel;
+    Panel5: TPanel;
+    lbTotal: TLabel;
+    btnCancelar: TButton;
+    procedure btnVendaClick(Sender: TObject);
+    procedure btnFinalizarClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure cbProdutosChange(Sender: TObject);
+    procedure txQuantidadeChange(Sender: TObject);
+    procedure btnAdicionarItemClick(Sender: TObject);
+    procedure txQuantidadeKeyPress(Sender: TObject; var Key: Char);
+    procedure txValorKeyPress(Sender: TObject; var Key: Char);
+    procedure btnProdutoClick(Sender: TObject);
+    procedure btnCancelarClick(Sender: TObject);
+    procedure btnVendasViewClick(Sender: TObject);
+  private
+    { Private declarations }
+    // Variaveis auxiliares
+    idProduto, RSProduto: String;
+    idVenda: String;
+    totalVenda, vDesconto: string;
+
+    procedure ConnectDB;
+    procedure loadProdutos;
+    procedure loadInfProduto;
+    procedure InsertVenda(cliente: String);
+    procedure loadProdutoVenda;
+    procedure InsertProdutoVenda;
+    procedure loadTotalVenda;
+    procedure finalizarVenda;
+    procedure cancelarVenda;
+  public
+    { Public declarations }
+  end;
+
+var
+  fFrenteCaixa: TfFrenteCaixa;
+
+implementation
+
+{$R *.dfm}
+
+uses uVendas, uDesconto;
+
+procedure TfFrenteCaixa.btnVendaClick(Sender: TObject);
+var
+  Resposta: string;
+begin
+
+  Resposta := InputBox('Pergunta', 'Digite o nome do cliente', '');
+
+  if Resposta <> '' then
+  begin
+    InsertVenda(Resposta);
+    lbCliente.Caption := 'Cliente: ' + UpperCase(Resposta);
+    Image1.Visible := false;
+    pnVendas.Visible := true;
+    btnProduto.Enabled := false;
+    btnVendasView.Enabled := false;
+    btnVenda.Enabled := false;
+
+    loadProdutos;
+    loadProdutoVenda;
+
+    cbProdutos.SetFocus;
+  end;
+end;
+
+procedure TfFrenteCaixa.btnFinalizarClick(Sender: TObject);
+begin
+  if DtModule.qrVendaProduto.RecordCount = 0 then
+  begin
+    ShowMessage('Não existe produtos nessa venda!');
+    EXIT;
+  end;
+
+  if MessageDlg('Deseja finalizar essa venda?', mtConfirmation, [mbYes, mbNo],
+    0) = mrYes then
+  begin
+    finalizarVenda;
+
+    Image1.Visible := true;
+    pnVendas.Visible := false;
+    btnProduto.Enabled := true;
+    btnVendasView.Enabled := true;
+    btnVenda.Enabled := true;
+    ShowMessage('Venda Finalizada');
+  end;
+end;
+
+procedure TfFrenteCaixa.cancelarVenda;
+begin
+  with DtModule.qrVendaProduto_CMD do
+  begin
+    close;
+    sql.Clear;
+    sql.Add('delete from tb_venda where id = ' + QuotedStr(idVenda));
+    ExecSQL;
+
+    sql.Clear;
+    sql.Add('delete from tb_venda_produto where venda_id = ' +
+      QuotedStr(idVenda));
+    ExecSQL;
+  end;
+end;
+
+procedure TfFrenteCaixa.cbProdutosChange(Sender: TObject);
+begin
+  idProduto := copy(cbProdutos.Text, 0, Pos(' - ', cbProdutos.Text) - 1);
+  loadInfProduto;
+  txQuantidade.Text := '1';
+end;
+
+procedure TfFrenteCaixa.ConnectDB;
+var
+  ArquivoINI: TIniFile;
+begin
+  // Conexão com o banco
+
+  ArquivoINI := TIniFile.Create('C:\FrenteCaixa\frenteCaixa.ini');
+
+  DtModule.Driver.VendorHome := ExtractFilePath(Application.ExeName) +
+    'pgbin32\';
+  DtModule.Driver.VendorLib := 'libpq.dll';
+  DtModule.Driver.Release;
+
+  DtModule.Connection.Connected := false;
+  DtModule.Connection.Params.Values['database'] := 'FrenteCaixa';
+  DtModule.Connection.Params.Values['user_name'] := 'postgres';
+  DtModule.Connection.Params.Values['password'] := 'amor12345';
+  DtModule.Connection.Params.Values['server'] := 'localhost';
+  DtModule.Connection.Params.Values['port'] := '5432';
+  DtModule.Connection.Connected := true;
+end;
+
+procedure TfFrenteCaixa.finalizarVenda;
+begin
+  loadTotalVenda;
+
+  with DtModule.qrVendaProduto_CMD do
+  begin
+    close;
+    sql.Clear;
+    sql.Add('update tb_venda set total= ' + QuotedStr(totalVenda) +
+      ' where id = ' + idVenda);
+    ExecSQL;
+  end;
+end;
+
+procedure TfFrenteCaixa.FormShow(Sender: TObject);
+begin
+  ConnectDB;
+end;
+
+procedure TfFrenteCaixa.InsertProdutoVenda;
+begin
+  with DtModule.qrVendaProduto_CMD do
+  begin
+    close;
+    sql.Clear;
+    sql.Add('insert into tb_venda_produto(venda_id,data_create,produto_id,quantidade,valor)');
+    sql.Add('values (:_venda_id, :_data_create, :_produto_id, :_quantidade,:_valor)');
+    ParamByName('_produto_id').AsInteger := StrToInt(idProduto);
+    ParamByName('_data_create').AsDate := now;
+    ParamByName('_venda_id').AsInteger := StrToInt(idVenda);
+    ParamByName('_quantidade').AsInteger := StrToInt(txQuantidade.Text);
+    ParamByName('_valor').AsCurrency := StrToCurr(txValor.Text);
+    ExecSQL;
+
+    DtModule.qrVendaProduto.Refresh;
+  end;
+end;
+
+procedure TfFrenteCaixa.InsertVenda(cliente: String);
+begin
+  with DtModule.qrVenda do
+  begin
+    close;
+    sql.Clear;
+    sql.Add('insert into tb_venda (cliente,data_create) values (:_cliente, :_data_create)');
+    ParamByName('_cliente').AsString := UpperCase(cliente);
+    ParamByName('_data_create').AsDate := now;
+    ExecSQL;
+
+    close;
+    sql.Clear;
+    sql.Add('select * from tb_venda order by id desc limit 1');
+    open;
+
+    if not IsEmpty then
+    begin
+      idVenda := FieldByName('id').AsString;
+    end;
+
+    close;
+  end;
+end;
+
+procedure TfFrenteCaixa.loadInfProduto;
+begin
+  with DtModule.qrVenda_Controle do
+  begin
+    close;
+    sql.Clear;
+    sql.Add('select * from tb_produto where id = ' + QuotedStr(idProduto));
+    // ERRO AQUI
+    // ParamByName('idProduto').AsString := idProduto;
+    open;
+
+    if not IsEmpty then
+    begin
+      txValor.Text := FieldByName('preco').AsString;
+      RSProduto := FieldByName('preco').AsString;
+    end;
+  end;
+end;
+
+procedure TfFrenteCaixa.loadProdutos;
+begin
+  // Carrega os produtos existentes no comboBox
+  with DtModule.qrProduto do
+  begin
+    close;
+    sql.Clear;
+    sql.Add('select * from tb_produto');
+    open;
+
+    if not IsEmpty then
+    begin
+      cbProdutos.Items.Clear;
+      idProduto := FieldByName('id').AsString;
+      while not eof do
+      begin
+        cbProdutos.Items.Add(FieldByName('id').AsString + ' - ' +
+          FieldByName('produto').AsString);
+        Next;
+      end;
+      cbProdutos.ItemIndex := 0;
+    end;
+    close;
+    loadInfProduto;
+  end;
+end;
+
+procedure TfFrenteCaixa.loadProdutoVenda;
+begin
+  with DtModule.qrVendaProduto do
+  begin
+    close;
+    sql.Clear;
+    sql.Add('SELECT');
+    sql.Add('	vp.ID,');
+    sql.Add('	pp.produto,');
+    // SQL.Add('	pp.preco,');
+    sql.Add(' vp.quantidade,');
+    sql.Add(' vp.valor');
+    sql.Add('FROM');
+    sql.Add('	tb_venda_produto vp');
+    sql.Add('	RIGHT JOIN tb_produto pp ON pp.ID = vp.produto_id');
+    sql.Add('WHERE');
+    sql.Add('	vp.venda_id = ' + QuotedStr(idVenda));
+    // ParamByName('_idVenda').AsString := idVenda;
+    open;
+  end;
+end;
+
+procedure TfFrenteCaixa.loadTotalVenda;
+begin
+  with DtModule.qrVendaProduto_CMD do
+  begin
+    close;
+    sql.Clear;
+    sql.Add('    SELECT ');
+    sql.Add('	SUM( valor ) as total');
+    sql.Add('FROM');
+    sql.Add('	tb_venda_produto');
+    sql.Add('WHERE');
+    sql.Add('	venda_id = ' + idVenda);
+    open;
+
+    if not IsEmpty then
+    begin
+      totalVenda := CurrToStr(FieldByName('total').AsCurrency);
+      lbTotal.Caption := 'Total: R$ ' +
+        CurrToStr(FieldByName('total').AsCurrency);
+    end;
+    close;
+  end;
+end;
+
+procedure TfFrenteCaixa.btnVendasViewClick(Sender: TObject);
+begin
+  fVendas.ShowModal;
+end;
+
+procedure TfFrenteCaixa.btnAdicionarItemClick(Sender: TObject);
+begin
+  cbProdutos.SetFocus;
+  InsertProdutoVenda;
+  loadTotalVenda;
+end;
+
+procedure TfFrenteCaixa.btnCancelarClick(Sender: TObject);
+begin
+  if MessageDlg('Deseja cancelar essa compra?', mtConfirmation, [mbYes, mbNo],
+    0) = mrYes then
+  begin
+    cancelarVenda;
+
+    Image1.Visible := true;
+    pnVendas.Visible := false;
+    btnProduto.Enabled := true;
+    btnVendasView.Enabled := true;
+    btnVenda.Enabled := true;
+    ShowMessage('Venda Cancelada!');
+  end;
+end;
+
+procedure TfFrenteCaixa.btnProdutoClick(Sender: TObject);
+begin
+  fProdutos.ShowModal;
+end;
+
+procedure TfFrenteCaixa.txQuantidadeChange(Sender: TObject);
+var
+  total: Double;
+  aux: string;
+begin
+  if txQuantidade.Text <> '' then
+  begin
+    total := StrToFloat(RSProduto) * StrToInt(txQuantidade.Text);
+
+    txValor.Text := total.ToString;
+  end;
+end;
+
+procedure TfFrenteCaixa.txQuantidadeKeyPress(Sender: TObject; var Key: Char);
+begin
+  if Key = #13 then
+  begin
+    btnAdicionarItem.OnClick(btnAdicionarItem);
+  end;
+end;
+
+procedure TfFrenteCaixa.txValorKeyPress(Sender: TObject; var Key: Char);
+begin
+  if Key = #13 then
+  begin
+    btnAdicionarItem.OnClick(btnAdicionarItem);
+  end;
+end;
+
+end.
