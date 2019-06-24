@@ -1,1 +1,1 @@
-Teste
+Aplicativo inicial para controle de vendas.
